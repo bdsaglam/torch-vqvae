@@ -1,0 +1,20 @@
+model_params:
+  input_shape: [3, 64, 64]
+  num_hiddens: 128
+  num_residual_hiddens: 32
+  num_residual_layers: 2
+  embedding_dim: 64
+  num_embeddings: 512
+  commitment_cost: 0.25
+  decay: 0.99
+
+exp_params:
+  data_dir: "/Users/bdsaglam/westworld-data/64x64-s0-dc/images"
+  batch_size: 32
+  learning_rate: 0.001
+  weight_decay: 0.0
+
+trainer_params:
+  max_epochs: 10
+#  gpus: 1
+
