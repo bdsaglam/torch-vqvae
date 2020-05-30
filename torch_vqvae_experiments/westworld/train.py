@@ -29,7 +29,7 @@ if __name__ == '__main__':
     cudnn.deterministic = True
     cudnn.benchmark = False
 
-    config_file = pathlib.Path('/Users/bdsaglam/PycharmProjects/torch-vqvae/experiments/westworld/config.yaml')
+    config_file = pathlib.Path('/Users/bdsaglam/PycharmProjects/torch-vqvae/torch_vqvae_experiments/westworld/config.yaml')
     config_yaml = config_file.read_text()
     config = yaml.safe_load(config_yaml)
 
