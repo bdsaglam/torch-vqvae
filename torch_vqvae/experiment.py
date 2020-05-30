@@ -38,12 +38,12 @@ class BaseExperiment(LightningModule):
     def training_step(self, batch, batch_idx):
         image, _ = batch
 
-        vq_loss, rec = self(image)[:2]
-        rec_loss = self.model.reconstruction_loss(rec, image)
-        loss = vq_loss + rec_loss
+        res = self(image)
+        rec_loss = self.model.reconstruction_loss(res.rec, image)
+        loss = res.vq_loss + rec_loss
 
         log = dict(
-            vq_loss=vq_loss.detach(),
+            vq_loss=res.vq_loss.detach(),
             rec_loss=rec_loss.detach(),
             loss=loss.detach()
         )
@@ -52,14 +52,14 @@ class BaseExperiment(LightningModule):
     def validation_step(self, batch, batch_idx):
         image, _ = batch
 
-        vq_loss, rec = self(image)[:2]
-        rec_loss = self.model.reconstruction_loss(image, rec)
-        loss = vq_loss + rec_loss
+        res = self(image)
+        rec_loss = self.model.reconstruction_loss(res.rec, image)
+        loss = res.vq_loss + rec_loss
 
         out = dict(val_loss=loss)
         if batch_idx == 0:
             out['image'] = image[:10]
-            out['rec'] = rec[:10]
+            out['rec'] = res.rec[:10]
         return out
 
     def validation_epoch_end(self, outputs):

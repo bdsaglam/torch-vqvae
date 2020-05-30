@@ -117,11 +117,11 @@ class VQVAE(nn.Module):
                                       kernel_size=1,
                                       stride=1)
         if decay > 0.0:
-            self._vq_vae = VectorQuantizerEMA(num_embeddings, embedding_dim,
-                                              commitment_cost, decay)
+            self._vq = VectorQuantizerEMA(num_embeddings, embedding_dim,
+                                          commitment_cost, decay)
         else:
-            self._vq_vae = VectorQuantizer(num_embeddings, embedding_dim,
-                                           commitment_cost)
+            self._vq = VectorQuantizer(num_embeddings, embedding_dim,
+                                       commitment_cost)
         self._decoder = Decoder(in_channels=embedding_dim,
                                 out_channels=input_shape[0],
                                 num_hiddens=num_hiddens,
@@ -129,11 +129,20 @@ class VQVAE(nn.Module):
                                 num_residual_hiddens=num_residual_hiddens)
 
     def forward(self, x):
-        z = self._encoder(x)
-        z = self._pre_vq_conv(z)
-        loss, quantized, perplexity, _ = self._vq_vae(z)
-        rec = self._decoder(quantized)
-        return loss, rec, perplexity
+        res = self.encode(x)
+        rec = self.decode(res.quantized)
+        res.update(rec=rec)
+        return res
 
     def reconstruction_loss(self, rec, target):
         return F.mse_loss(rec, target)
+
+    def encode(self, image):
+        feature = self._encoder(image)
+        latent = self._pre_vq_conv(feature)
+        res = self._vq(latent)
+        return res
+
+    def decode(self, quantized):
+        rec = self._decoder(quantized)
+        return rec
