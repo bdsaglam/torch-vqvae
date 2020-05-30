@@ -1,4 +1,5 @@
 import pathlib
+from argparse import Namespace
 
 import torch.backends.cudnn as cudnn
 import torchvision
@@ -8,12 +9,11 @@ from torch.utils.data import random_split
 from torchvision.transforms import transforms
 
 from torch_vqvae.experiment import BaseExperiment
-from torch_vqvae.model import VQVAE
 
 
 class WestWorldExperiment(BaseExperiment):
     def prepare_data(self):
-        data_dir = self.params['data_dir']
+        data_dir = self.hparams['data_dir']
 
         ds = torchvision.datasets.ImageFolder(root=data_dir,
                                               transform=transforms.ToTensor())
@@ -29,16 +29,21 @@ if __name__ == '__main__':
     cudnn.deterministic = True
     cudnn.benchmark = False
 
-    config_file = pathlib.Path('/Users/bdsaglam/PycharmProjects/torch-vqvae/torch_vqvae_experiments/westworld/config.yaml')
-    config_yaml = config_file.read_text()
-    config = yaml.safe_load(config_yaml)
+    # prepare config
+    script_file = pathlib.Path(__file__).absolute()
+    config_file = script_file.parent / 'config.yaml'
+    config = yaml.safe_load(config_file.read_text())
+    hparams = dict(
+        model_params=config['model_params'],
+        **config['experiment_params'],
+        **config['trainer_params'],
+    )
 
-    model = VQVAE(**config['model_params'])
-    experiment = WestWorldExperiment(model, config['exp_params'])
+    experiment = WestWorldExperiment(Namespace(**hparams))
 
     runner = Trainer(
         early_stop_callback=False,
-        **config['trainer_params']
-    )
+        overfit_pct=0.1,
+        **config['trainer_params'])
 
     runner.fit(experiment)

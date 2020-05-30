@@ -8,7 +8,7 @@ model_params:
   commitment_cost: 0.25
   decay: 0.99
 
-exp_params:
+experiment_params:
   data_dir: "/Users/bdsaglam/westworld-data/64x64-s0-dc/images"
   batch_size: 32
   learning_rate: 0.001

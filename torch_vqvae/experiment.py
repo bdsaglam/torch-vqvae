@@ -1,20 +1,36 @@
+import pathlib
+from argparse import ArgumentParser
+
 import torch
 import torchvision
 from pytorch_lightning import LightningModule
 from torch.utils.data import DataLoader
 
+from torch_vqvae.model import VQVAE
+
 Tensor = torch.Tensor
 
 
 class BaseExperiment(LightningModule):
-    def __init__(self,
-                 vae_model,
-                 params) -> None:
+    def __init__(self, hparams) -> None:
         super().__init__()
 
-        self.model = vae_model
-        self.params = params
+        self.model = VQVAE(**hparams.model_params)
+        self.hparams = hparams
         self.current_device = None
+
+    @staticmethod
+    def add_model_specific_args(parent_parser):
+        parser = ArgumentParser(parents=[parent_parser], add_help=False)
+        # data args
+        parser.add_argument('--data_dir', type=str, default=str(pathlib.Path('./data')))
+        parser.add_argument('--num_workers', type=int, default=1)
+        parser.add_argument('--batch_size', type=int, default=32)
+        # optimizer args
+        parser.add_argument('--learning_rate', type=float, default=1e-4)
+        parser.add_argument('--weight_decay', type=float, default=0.0)
+
+        return parser
 
     def forward(self, image: Tensor) -> Tensor:
         return self.model(image)
@@ -63,21 +79,19 @@ class BaseExperiment(LightningModule):
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.model.parameters(),
-                                lr=self.params['learning_rate'],
-                                weight_decay=self.params['weight_decay'],
+                                lr=self.hparams.learning_rate,
+                                weight_decay=self.hparams.weight_decay,
                                 amsgrad=False)
 
     def prepare_data(self):
         raise NotImplementedError()
 
     def train_dataloader(self):
-        num_workers = self.params.get('num_workers', 1)
         return DataLoader(self.train_dataset,
-                          batch_size=self.params['batch_size'],
-                          num_workers=num_workers)
+                          batch_size=self.hparams.batch_size,
+                          num_workers=self.hparams.num_workers)
 
     def val_dataloader(self):
-        num_workers = self.params.get('num_workers', 1)
         return DataLoader(self.val_dataset,
-                          batch_size=self.params['batch_size'],
-                          num_workers=num_workers)
+                          batch_size=self.hparams.batch_size,
+                          num_workers=self.hparams.num_workers)

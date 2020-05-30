@@ -8,12 +8,13 @@ model_params:
   commitment_cost: 0.25
   decay: 0.99
 
-exp_params:
+experiment_params:
   data_dir: "/Users/bdsaglam/torch-datasets"
   batch_size: 32
+  num_workers: 1
   learning_rate: 0.001
   weight_decay: 0.0
 
 trainer_params:
-  max_epochs: 10
-#  gpus: 1
+  max_epochs: 1
+  #  gpus: 1

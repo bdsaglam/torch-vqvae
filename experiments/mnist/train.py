@@ -1,4 +1,5 @@
 import pathlib
+from argparse import Namespace
 
 import torch.backends.cudnn as cudnn
 import yaml
@@ -8,20 +9,18 @@ from torchvision import transforms
 from torchvision.datasets import MNIST
 
 from torch_vqvae.experiment import BaseExperiment
-from torch_vqvae.model import VQVAE
 
 
 class MNISTExperiment(BaseExperiment):
     def prepare_data(self):
-        data_dir = self.params['data_dir']
-
         # transform
         transform = transforms.Compose([
             transforms.ToTensor(),
         ])
 
         # download
-        mnist_train = MNIST(data_dir, train=True, download=True, transform=transform)
+        mnist_train = MNIST(self.hparams.data_dir, train=True, download=True,
+                            transform=transform)
 
         # train/val split
         mnist_train, mnist_val = random_split(mnist_train, [55000, 5000])
@@ -37,12 +36,17 @@ if __name__ == '__main__':
     cudnn.deterministic = True
     cudnn.benchmark = False
 
-    config_file = pathlib.Path('/Users/bdsaglam/PycharmProjects/torch-vqvae/torch_vqvae_experiments/mnist/config.yaml')
-    config_yaml = config_file.read_text()
-    config = yaml.safe_load(config_yaml)
+    # prepare config
+    script_file = pathlib.Path(__file__).absolute()
+    config_file = script_file.parent / 'config.yaml'
+    config = yaml.safe_load(config_file.read_text())
+    hparams = dict(
+        model_params=config['model_params'],
+        **config['experiment_params'],
+        **config['trainer_params'],
+    )
 
-    model = VQVAE(**config['model_params'])
-    experiment = MNISTExperiment(model, config['exp_params'])
+    experiment = MNISTExperiment(Namespace(**hparams))
 
     runner = Trainer(
         early_stop_callback=False,
