@@ -128,15 +128,6 @@ class VQVAE(nn.Module):
                                 num_residual_layers=num_residual_layers,
                                 num_residual_hiddens=num_residual_hiddens)
 
-    def forward(self, x):
-        res = self.encode(x)
-        rec = self.decode(res.quantized)
-        res.update(rec=rec)
-        return res
-
-    def reconstruction_loss(self, rec, target):
-        return F.mse_loss(rec, target)
-
     def encode(self, image):
         feature = self._encoder(image)
         latent = self._pre_vq_conv(feature)
@@ -146,3 +137,12 @@ class VQVAE(nn.Module):
     def decode(self, quantized):
         rec = self._decoder(quantized)
         return rec
+
+    def forward(self, x):
+        res = self.encode(x)
+        rec = self.decode(res.quantized)
+        res.update(rec=rec)
+        return res
+
+    def reconstruction_loss(self, rec, target):
+        return F.mse_loss(rec, target)
