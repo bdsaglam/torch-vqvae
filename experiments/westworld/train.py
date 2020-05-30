@@ -13,9 +13,7 @@ from torch_vqvae.experiment import BaseExperiment
 
 class WestWorldExperiment(BaseExperiment):
     def prepare_data(self):
-        data_dir = self.hparams['data_dir']
-
-        ds = torchvision.datasets.ImageFolder(root=data_dir,
+        ds = torchvision.datasets.ImageFolder(root=self.hparams.data_dir,
                                               transform=transforms.ToTensor())
         n = len(ds)
         tn = int(n * 0.8)

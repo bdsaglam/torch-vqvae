@@ -11,10 +11,10 @@ model_params:
 experiment_params:
   data_dir: "/Users/bdsaglam/westworld-data/64x64-s0-dc/images"
   batch_size: 32
+  num_workers: 1
   learning_rate: 0.001
   weight_decay: 0.0
 
 trainer_params:
   max_epochs: 10
 #  gpus: 1
-
