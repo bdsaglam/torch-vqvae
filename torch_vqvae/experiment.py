@@ -1,8 +1,7 @@
 import torch
 import torchvision
 from pytorch_lightning import LightningModule
-from torch.utils.data import DataLoader, random_split
-from torchvision import transforms
+from torch.utils.data import DataLoader
 
 Tensor = torch.Tensor
 
@@ -70,15 +69,6 @@ class BaseExperiment(LightningModule):
 
     def prepare_data(self):
         raise NotImplementedError()
-
-        data_dir = self.params['data_dir']
-
-        ds = torchvision.datasets.ImageFolder(root=data_dir,
-                                              transform=transforms.ToTensor())
-        n = len(ds)
-        tn = int(n * 0.8)
-        vn = n - tn
-        self.train_dataset, self.val_dataset = random_split(ds, [tn, vn])
 
     def train_dataloader(self):
         num_workers = self.params.get('num_workers', 1)
