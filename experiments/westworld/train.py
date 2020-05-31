@@ -1,5 +1,5 @@
 import pathlib
-from argparse import Namespace
+from argparse import Namespace, ArgumentParser
 
 import torch.backends.cudnn as cudnn
 import torchvision
@@ -27,21 +27,23 @@ if __name__ == '__main__':
     cudnn.deterministic = True
     cudnn.benchmark = False
 
-    # prepare config
-    script_file = pathlib.Path(__file__).absolute()
-    config_file = script_file.parent / 'config.yaml'
-    config = yaml.safe_load(config_file.read_text())
-    hparams = dict(
-        model_params=config['model_params'],
-        **config['experiment_params'],
-        **config['trainer_params'],
-    )
+    parser = ArgumentParser()
+    parser.add_argument('--hparams_file', type=str, default=None)
+    parser = Trainer.add_argparse_args(parser)
+    args = parser.parse_args()
 
+    # prepare hparams
+    if args.hparams_file is not None:
+        hparams_file = pathlib.Path(args.hparams_file)
+    else:
+        script_file = pathlib.Path(__file__).absolute()
+        hparams_file = script_file.parent / 'hparams.yaml'
+    hparams = yaml.safe_load(hparams_file.read_text())
     experiment = WestWorldExperiment(Namespace(**hparams))
 
-    runner = Trainer(
-        early_stop_callback=False,
-        overfit_pct=0.1,
-        **config['trainer_params'])
+    # prepare trainer params
+    trainer_params = vars(args)
+    del trainer_params['hparams_file']
+    runner = Trainer(**trainer_params)
 
     runner.fit(experiment)
