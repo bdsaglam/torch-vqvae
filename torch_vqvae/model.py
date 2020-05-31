@@ -1,4 +1,5 @@
 # Credits: https://colab.research.google.com/github/zalandoresearch/pytorch-vq-vae/
+import torch
 from torch import nn
 from torch.nn import functional as F
 
@@ -107,7 +108,7 @@ class VQVAE(nn.Module):
     def __init__(self, input_shape, num_hiddens, num_residual_layers, num_residual_hiddens,
                  num_embeddings, embedding_dim, commitment_cost, decay=0):
         super().__init__()
-
+        self.input_shape = input_shape
         self._encoder = Encoder(in_channels=input_shape[0],
                                 num_hiddens=num_hiddens,
                                 num_residual_layers=num_residual_layers,
@@ -127,6 +128,15 @@ class VQVAE(nn.Module):
                                 num_hiddens=num_hiddens,
                                 num_residual_layers=num_residual_layers,
                                 num_residual_hiddens=num_residual_hiddens)
+        with torch.no_grad():
+            image = torch.rand(1, *input_shape)
+            res = self.forward(image)
+            self.output_shapes = dict(
+                quantized=res.quantized.squeeze(0).shape,
+                vq_loss=res.vq_loss.squeeze(0).shape,
+                perplexity=res.perplexity.squeeze(0).shape,
+                embedding_mask=res.embedding_mask.squeeze(0).shape,
+            )
 
     def encode(self, image):
         feature = self._encoder(image)
