@@ -15,7 +15,7 @@ class BaseExperiment(LightningModule):
     def __init__(self, hparams) -> None:
         super().__init__()
 
-        self.model = VQVAE(**hparams.model_params)
+        self.model = VQVAE(**hparams.model)
         self.hparams = hparams
         self.current_device = None
 
